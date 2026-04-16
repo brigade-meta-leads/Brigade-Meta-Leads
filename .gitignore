@@ -1,0 +1,5 @@
+.env
+raw_leads/
+*.log
+__pycache__/
+*.pyc
