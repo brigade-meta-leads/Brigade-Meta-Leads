@@ -4,50 +4,67 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Brigade Hospitality — Leads Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1a1a2e}
-.header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);color:white;padding:28px 40px;display:flex;justify-content:space-between;align-items:center}
-.header h1{font-size:1.7rem;font-weight:700;letter-spacing:-.3px}
-.header p{opacity:.6;font-size:.85rem;margin-top:4px}
-.updated{background:rgba(255,255,255,.12);padding:6px 14px;border-radius:20px;font-size:.72rem;opacity:.9}
-.container{max-width:1200px;margin:0 auto;padding:28px 20px}
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
-.card{background:white;border-radius:14px;padding:20px 24px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-.card-val{font-size:2rem;font-weight:700;color:#0f3460}
-.card-lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af;margin-top:4px;font-weight:600}
-.donut-card{background:white;border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);display:flex;align-items:center;gap:24px}
-.donut-card canvas{max-width:160px;max-height:160px}
-.donut-legend{flex:1}
-.dl-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:.84rem}
-.dl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.dl-name{flex:1;color:#444}
-.dl-val{font-weight:700;color:#1a1a2e}
-.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
-.tab{padding:9px 20px;border-radius:10px;border:2px solid #dde3f5;background:white;color:#6b7280;font-size:.84rem;font-weight:600;cursor:pointer;transition:all .2s}
+
+.header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);color:white;padding:24px 36px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.6rem;font-weight:700}
+.header p{opacity:.6;font-size:.82rem;margin-top:3px}
+.updated{background:rgba(255,255,255,.12);padding:5px 14px;border-radius:20px;font-size:.72rem}
+
+.container{max-width:1280px;margin:0 auto;padding:24px 20px}
+
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.card{background:white;border-radius:12px;padding:18px 22px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card-val{font-size:1.9rem;font-weight:700;color:#0f3460}
+.card-lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af;margin-top:3px;font-weight:600}
+
+.toolbar{background:white;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:22px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.toolbar label{font-size:.78rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px}
+.toolbar input[type=date]{padding:7px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:.84rem;color:#1a1a2e;outline:none}
+.toolbar input[type=date]:focus{border-color:#0f3460}
+.toolbar-sep{flex:1}
+.btn{padding:8px 18px;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;transition:all .18s}
+.btn-download{background:#16a34a;color:white}
+.btn-download:hover{background:#15803d}
+.btn-reset{background:#f3f4f6;color:#374151}
+.btn-reset:hover{background:#e5e7eb}
+.result-count{font-size:.8rem;color:#9ca3af;font-weight:500}
+
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.tab{padding:8px 18px;border-radius:10px;border:2px solid #e5e7eb;background:white;color:#6b7280;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .18s}
 .tab.active{background:#0f3460;color:white;border-color:#0f3460}
-.tab:hover:not(.active){border-color:var(--tc,#0f3460);color:var(--tc,#0f3460)}
-.prop-section{display:none;background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:20px}
-.prop-section.visible{display:block}
-.prop-header{padding:20px 28px;display:flex;justify-content:space-between;align-items:center;color:white}
-.prop-name{font-size:1.2rem;font-weight:700}
-.prop-sub{font-size:.8rem;opacity:.75;margin-top:3px}
-.prop-stats{display:flex;gap:28px}
-.prop-stat{text-align:center}
-.ps-val{font-size:1.4rem;font-weight:700}
-.ps-lbl{font-size:.65rem;opacity:.75;text-transform:uppercase;letter-spacing:.5px}
-.chart-wrap{padding:20px 28px 10px;border-bottom:1px solid #f3f4f6}
+.tab:hover:not(.active){border-color:#0f3460;color:#0f3460}
+
+.panel{display:none}
+.panel.visible{display:block}
+
+.prop-header{border-radius:12px 12px 0 0;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;color:white}
+.prop-name{font-size:1.1rem;font-weight:700}
+.prop-sub{font-size:.78rem;opacity:.7;margin-top:2px}
+.prop-stats{display:flex;gap:24px}
+.ps-val{font-size:1.3rem;font-weight:700;text-align:center}
+.ps-lbl{font-size:.62rem;opacity:.72;text-transform:uppercase;letter-spacing:.4px;text-align:center}
+
+.table-card{background:white;border-radius:0 0 12px 12px;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:20px;overflow:hidden}
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.84rem}
-th{background:#1a1a2e;color:white;padding:10px 14px;text-align:left;font-size:.74rem;letter-spacing:.4px;white-space:nowrap}
-td{padding:9px 14px;border-bottom:1px solid #f3f4f6;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{background:#1a1a2e;color:white;padding:10px 13px;text-align:left;font-size:.72rem;letter-spacing:.4px;white-space:nowrap;position:sticky;top:0}
+td{padding:9px 13px;border-bottom:1px solid #f3f4f6;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#f8f9ff}
-.all-section{background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07)}
-.all-header{padding:18px 28px;background:#1a1a2e;color:white;font-size:1rem;font-weight:700}
-.footer{text-align:center;padding:24px;color:#9ca3af;font-size:.72rem}
-@media(max-width:700px){.summary{grid-template-columns:repeat(2,1fr)}.prop-stats{gap:16px}}
+.empty{padding:36px;text-align:center;color:#9ca3af;font-size:.88rem}
+
+.footer{text-align:center;padding:22px;color:#9ca3af;font-size:.7rem}
+
+@media(max-width:700px){
+  .summary{grid-template-columns:repeat(2,1fr)}
+  .prop-stats{gap:14px}
+  .toolbar{flex-direction:column;align-items:flex-start}
+}
 </style>
 </head>
 <body>
@@ -57,335 +74,211 @@ tr:hover td{background:#f8f9ff}
     <h1>Brigade Hospitality</h1>
     <p>Meta Ads — Leads Dashboard</p>
   </div>
-  <div class="updated">Updated 16 Apr 2026, 5:34 PM IST</div>
+  <div class="updated">Updated 16 Apr 2026, 05:44 PM IST</div>
 </div>
 
 <div class="container">
 
   <!-- Summary cards -->
   <div class="summary">
-    <div class="card"><div class="card-val">0</div><div class="card-lbl">Total Leads</div></div>
-    <div class="card"><div class="card-val">0</div><div class="card-lbl">This Week</div></div>
-    <div class="card"><div class="card-val">0</div><div class="card-lbl">Last 24 Hours</div></div>
-    <div class="card"><div class="card-val">0</div><div class="card-lbl">Properties Active</div></div>
+    <div class="card"><div class="card-val" id="stat-total">39</div><div class="card-lbl">Total Leads</div></div>
+    <div class="card"><div class="card-val" id="stat-week">39</div><div class="card-lbl">This Week</div></div>
+    <div class="card"><div class="card-val" id="stat-today">6</div><div class="card-lbl">Last 24 Hours</div></div>
+    <div class="card"><div class="card-val">5</div><div class="card-lbl">Properties Active</div></div>
   </div>
 
-  <!-- Donut chart -->
-  <div class="donut-card" style="margin-bottom:28px">
-    <canvas id="donut-chart"></canvas>
-    <div class="donut-legend">
-      <div style="font-size:.85rem;font-weight:700;color:#1a1a2e;margin-bottom:12px">Leads by Property</div>
-      
-    </div>
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <label>From</label>
+    <input type="date" id="date-from" value="2026-04-11" min="2026-04-11" max="2026-04-16">
+    <label>To</label>
+    <input type="date" id="date-to" value="2026-04-16" min="2026-04-11" max="2026-04-16">
+    <button class="btn btn-reset" onclick="resetDates()">Reset</button>
+    <div class="toolbar-sep"></div>
+    <span class="result-count" id="result-count"></span>
+    <button class="btn btn-download" onclick="downloadExcel()">⬇ Download Excel</button>
   </div>
 
-  <!-- Nav tabs -->
-  <div class="nav"><button class="tab active" onclick="showProp('all',this)">All Properties</button><button class="tab" onclick="showProp('signature',this)" style="--tc:#1a3c6e">Signature</button><button class="tab" onclick="showProp('woodrose',this)" style="--tc:#6e1a3c">Woodrose</button><button class="tab" onclick="showProp('regent',this)" style="--tc:#1a6e3c">Regent</button><button class="tab" onclick="showProp('augusta',this)" style="--tc:#6e4a1a">Augusta</button><button class="tab" onclick="showProp('galaxy',this)" style="--tc:#3c1a6e">Galaxy</button></div>
-
-  <!-- All properties view -->
-  <div class="prop-section all-section visible" id="prop-all">
-    <div class="all-header">Recent 50 Leads — All Properties</div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Name</th><th>Property</th><th>Form</th><th>Phone</th><th>Submitted At</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <!-- Tabs -->
+  <div class="nav" id="tab-nav">
+    <button class="tab active" onclick="showTab('all',this)">All Properties</button>
+    <button class="tab" onclick="showTab('signature',this)">Signature</button><button class="tab" onclick="showTab('woodrose',this)">Woodrose</button><button class="tab" onclick="showTab('regent',this)">Regent</button><button class="tab" onclick="showTab('augusta',this)">Augusta</button><button class="tab" onclick="showTab('galaxy',this)">Galaxy</button>
   </div>
 
-  <!-- Per-property sections -->
-  
-<div class="prop-section" id="prop-signature">
-  <div class="prop-header" style="background:#1a3c6e">
-    <div>
-      <div class="prop-name">Signature</div>
-      <div class="prop-sub">0 total leads</div>
-    </div>
-    <div class="prop-stats">
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Total</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">This week</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Today</div></div>
-    </div>
-  </div>
+  <!-- Panels populated by JS -->
+  <div id="panels"></div>
 
-  <div class="chart-wrap">
-    <canvas id="chart-signature" height="80"></canvas>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead><tr>
-        <th>Name</th><th>Phone</th><th>Email</th><th>Form</th><th>Submitted At</th>
-        
-      </tr></thead>
-      <tbody><tr><td colspan="10" style="text-align:center;color:#9ca3af">No leads yet</td></tr></tbody>
-    </table>
-  </div>
 </div>
+
+<div class="footer">Brigade Hospitality x Gautami &nbsp;|&nbsp; Meta Ads only &nbsp;|&nbsp; Auto-updated every 15 min</div>
+
 <script>
-(function(){
-  var ctx = document.getElementById('chart-signature').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ["18 Mar", "19 Mar", "20 Mar", "21 Mar", "22 Mar", "23 Mar", "24 Mar", "25 Mar", "26 Mar", "27 Mar", "28 Mar", "29 Mar", "30 Mar", "31 Mar", "01 Apr", "02 Apr", "03 Apr", "04 Apr", "05 Apr", "06 Apr", "07 Apr", "08 Apr", "09 Apr", "10 Apr", "11 Apr", "12 Apr", "13 Apr", "14 Apr", "15 Apr", "16 Apr"],
-      datasets: [{
-        label: 'Leads',
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: '#1a3c6ecc',
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 11 } } },
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-      }
-    }
+const ALL_LEADS   = [{"id": "2023243582404205", "date": "16 Apr 2026, 01:36 AM", "date_ts": "2026-04-16", "Email": "pjain11b@gmail.com", "Name": "Pragya Jain", "What type of membership are you interested in?": "Just exploring", "How soon are you looking to start your membership?": "Immediately", "Phone": "+919343828444", "Preferred membership tenure": "Not sure yet", "_property": "Signature", "_form_type": "Club Membership", "_sheet": "Signature - Club Membership"}, {"id": "4242723275966896", "date": "16 Apr 2026, 12:05 PM", "date_ts": "2026-04-16", "What type of membership are you interested in?": "Family", "Preferred membership tenure": "Not sure yet", "How soon are you looking to start your membership?": "Within 1 month", "Name": "Abhishek Goda", "Phone": "+919441666611", "Email": "abhishek.goda@gmail.com", "_property": "Regent", "_form_type": "Club Membership", "_sheet": "Regent - Club Membership"}, {"id": "937328295891059", "date": "16 Apr 2026, 04:19 AM", "date_ts": "2026-04-16", "What type of membership are you interested in?": "Individual", "Preferred membership tenure": "Not sure yet", "How soon are you looking to start your membership?": "Just exploring options", "Name": "Prashant Kumar Prasun", "Phone": "+918880021874", "Email": "pkprasun@outlook.com", "_property": "Regent", "_form_type": "Club Membership", "_sheet": "Regent - Club Membership"}, {"id": "2069449423602641", "date": "16 Apr 2026, 06:08 AM", "date_ts": "2026-04-16", "What type of event are you planning?": "Birthday celebration", "How many guests are you expecting?": "50 - 100 guests", "When are you planning your event?": "Within 1 month", "What is your approximate event budget?": "Not decided yet", "Name": "Ranjith Kumar P", "Phone": "+918867724467", "Email": "ranjithkumarp1412@gmail.com", "_property": "Regent", "_form_type": "Social Events", "_sheet": "Regent - Social Events"}, {"id": "2450271978751328", "date": "16 Apr 2026, 08:39 AM", "date_ts": "2026-04-16", "Email": "rn.ramgowda@gmail.com", "Name": "Ram", "What type of membership are you interested in?": "Family", "How soon are you looking to start your membership?": "Within 1 month", "Phone": "+918548081116", "Preferred membership tenure": "5 years", "_property": "Galaxy", "_form_type": "Club Membership", "_sheet": "Galaxy - Club Membership"}, {"id": "1624758982161906", "date": "15 Apr 2026, 11:53 PM", "date_ts": "2026-04-15", "What type of event are you planning?": "Engagement / Anniversary", "How many guests are you expecting?": "100 - 200 guests", "When are you planning your event?": "Within 1 month", "What is your approximate event budget?": "Under 1 lakh", "Name": "Chitta", "Phone": "+919663810039", "Email": "chitra.s21@gmail.com", "_property": "Regent", "_form_type": "Social Events", "_sheet": "Regent - Social Events"}, {"id": "1236723671956813", "date": "14 Apr 2026, 01:49 AM", "date_ts": "2026-04-14", "Email": "Krishna@thesmartspace.co.in", "Name": "Smart Space", "What type of membership are you interested in?": "Couple", "How soon are you looking to start your membership?": "Immediately", "Phone": "+919019288906", "Preferred membership tenure": "3 years", "_property": "Signature", "_form_type": "Club Membership", "_sheet": "Signature - Club Membership"}, {"id": "2317088992150656", "date": "14 Apr 2026, 11:10 PM", "date_ts": "2026-04-14", "Which Day Out package are you interested in?": "Mid-Day Escape (Lunch + Dinner + Hi-Tea)", "How many people will be joining?": "50+ people", "When are you planning your visit?": "Within 1 month", "Name": "Kolimi Ashok Ashok", "Phone": "+918746883561", "Email": "kolimiashokashok@gmail.com", "_property": "Signature", "_form_type": "Day Out", "_sheet": "Signature - Day Out"}, {"id": "959182173183420", "date": "14 Apr 2026, 08:02 AM", "date_ts": "2026-04-14", "Which Day Out package are you interested in?": "Full-Day Leisure (Breakfast + Lunch + Dinner + Hi-Tea)", "How many people will be joining?": "11-20 people", "When are you planning your visit?": "Within 1 month", "Name": "chandra_reddy", "Phone": "+918880364843", "Email": "chandrashekharreddy68@gmail.com", "_property": "Signature", "_form_type": "Day Out", "_sheet": "Signature - Day Out"}, {"id": "798174546687087", "date": "14 Apr 2026, 09:03 PM", "date_ts": "2026-04-14", "Name": "Shilpi Verma", "Phone": "+918574037139", "Email": "shilpiverma222@gmail.com", "What type of event are you planning?": "Birthday celebration", "How many guests are you expecting?": "Up to 50 guests", "When are you planning your event?": "Within 3 months", "What is your approximate event budget?": "Under 1 lakh", "_property": "Regent", "_form_type": "Social Events", "_sheet": "Regent - Social Events"}, {"id": "1977358962858086", "date": "14 Apr 2026, 10:19 PM", "date_ts": "2026-04-14", "Name": "Santhosh Jay", "Phone": "+919148133322", "Email": "santh.jagannath@gmail.com", "What type of membership are you interested in?": "Family", "Preferred membership tenure": "3 years", "How soon are you looking to start your membership?": "Just exploring options", "_property": "Augusta", "_form_type": "Club Membership", "_sheet": "Augusta - Club Membership"}, {"id": "1646961083272437", "date": "14 Apr 2026, 10:33 PM", "date_ts": "2026-04-14", "Name": "Shanmukha Swamy", "Phone": "+919972112274", "Email": "drshanmukha@yahoo.com", "What type of membership are you interested in?": "Family", "Preferred membership tenure": "Not sure yet", "How soon are you looking to start your membership?": "Just exploring options", "_property": "Galaxy", "_form_type": "Club Membership", "_sheet": "Galaxy - Club Membership"}, {"id": "841962294840910", "date": "13 Apr 2026, 05:53 PM", "date_ts": "2026-04-13", "How soon are you looking to start your membership?": "Immediately", "Name": "vinay", "Preferred membership tenure": "3 years", "Phone": "+919880193872", "What type of membership are you interested in?": "Individual", "Email": "aurovinaya81@gmail.com", "_property": "Signature", "_form_type": "Club Membership", "_sheet": "Signature - Club Membership"}, {"id": "26932301293034429", "date": "13 Apr 2026, 11:05 AM", "date_ts": "2026-04-13", "Email": "hiteshpirgal44@gmail.com", "Name": "Hitesh Pirgal", "What type of membership are you interested in?": "Family", "How soon are you looking to start your membership?": "Just exploring options", "Phone": "+919844338769", "Preferred membership tenure": "Not sure yet", "_property": "Signature", "_form_type": "Club Membership", "_sheet": "Signature - Club Membership"}, {"id": "1495238812316162", "date": "13 Apr 2026, 08:06 AM", "date_ts": "2026-04-13", "What type of membership are you interested in?": "Family", "Preferred membership tenure": "Not sure yet", "How soon are you looking to start your membership?": "Just exploring options", "Name": "Suman Mohan Kumar", "Phone": "+918309114343", "Email": "healthconsultant.sp7@gmail.com", "_property": "Signature", "_form_type": "Club Membership", "_sheet": "Signature - Club Membership"}, {"id": "1445450377122522", "date": "13 Apr 2026, 01:14 PM", "date_ts": "2026-04-13", "What type of membership are you interested in?": "Individual", "Preferred membership tenure": "3 years", "How soon are you looking to start your membership?": "Immediately", "Name": "Sunita Singh", "Phone": "+919663590485", "Email": "changedsonia2025@gmail.com", "_property": "Woodrose", "_form_type": "Club Membership", "_sheet": "Woodrose - Club Membership"}, {"id": "830188150100968", "date": "13 Apr 2026, 08:53 AM", "date_ts": "2026-04-13", "What type of membership are you interested in?": "Individual", "Preferred membership tenure": "3 years", "How soon are you looking to start your membership?": "Within 1 month", "Name": "Jerry", "Phone": "+919632507870", "Email": "aylwinjerry@gmail.com", "_property": "Regent", "_form_type": "Club Membership", "_sheet": "Regent - Club Membership"}, {"id": "1221189026513724", "date": "13 Apr 2026, 05:01 PM", "date_ts": "2026-04-13", "What type of event are you planning?": "Birthday celebration", "How many guests are you expecting?": "100 - 200 guests", "When are you planning your event?": "Within 3 months", "What is your approximate event budget?": "1 - 3 lakhs", "Name": "Arpita Sathya", "Phone": "+919619586508", "Email": "arpisathya@gmail.com", "_property": "Regent", "_form_type": "Social Events", "_sheet": "Regent - Social Events"}, {"id": "1486017976490446", "date": "13 Apr 2026, 01:15 PM", "date_ts": "2026-04-13", "What type of event are you planning?": "Birthday celebration", "How many guests are you expecting?": "50 - 100 guests", "When are you planning your event?": "Within 1 month", "What is your approximate event budget?": "Under 1 lakh", "Name": "Navya", "Phone": "+919738646460", "Email": "navyanaidu1995@gmail.com", "_property": "Regent", "_form_type": "Social Events", "_sheet": "Regent - Social Events"}, {"id": "843331972118303", "date": "13 Apr 2026, 08:46 AM", "date_ts": "2026-04-13", "What type of event are you planning?": "Birthday celebration", "How many guests are you expecting?": "50 - 100 guests", "When are you planning your event?": "Within 1 month", "What is your approximate event budget?": "Under 1 lakh", "Name": "Saras Chandrashekar", "Phone": "+919880516930", "Email": "saras.chandrashekar@gmail.com", "_property": "Regent", "_form_type": "Social Events", "_sheet": "Regent - Social Events"}, {"id": "1587863722275615", "date": "13 Apr 2026, 08:34 AM", "date_ts": "2026-04-13", "Name": "Shivanand V D", "Phone": "+919900970545", "Email": "vdshivanand@yahoo.com", "What type of event are you planning?": "Birthday celebration", "How many guests are you expecting?": "Up to 50 guests", "When are you planning your event?": "Within 1 month", "What is your approximate event budget?": "Under 1 lakh", "_property": "Augusta", "_form_type": "Social Events", "_sheet": "Augusta - Social Events"}, {"id": "1314450060747175", "date": "13 Apr 2026, 08:06 PM", "date_ts": "2026-04-13", "How soon are you looking to start your membership?": "Immediately", "Name": "vinay", "Preferred membership tenure": "3 years", "Phone": "+919880193872", "What type of membership are you interested in?": "Family", "Email": "aurovinaya81@gmail.com", "_property": "Galaxy", "_form_type": "Club Membership", "_sheet": "Galaxy - Club Membership"}, {"id": "983704650746910", "date": "13 Apr 2026, 10:47 PM", "date_ts": "2026-04-13", "Name": "Pallavi Giri", "Phone": "+7030295436", "Email": "djpv2009@gmail.com", "What type of event are you planning?": "Wedding / Reception", "How many guests are you expecting?": "200+ guests", "When are you planning your event?": "Just exploring options", "What is your approximate event budget?": "3 - 5 lakhs", "_property": "Galaxy", "_form_type": "Social Events", "_sheet": "Galaxy - Social Events"}, {"id": "981628901062534", "date": "12 Apr 2026, 09:14 PM", "date_ts": "2026-04-12", "How soon are you looking to start your membership?": "Immediately", "Name": "Rizwan Khan", "Preferred membership tenure": "Not sure yet", "Phone": "+919035012345", "What type of membership are you interested in?": "Family", "Email": "rkhan82@gmail.com", "_property": "Signature", "_form_type": "Club Membership", "_sheet": "Signature - Club Membership"}, {"id": "1702478874253709", "date": "12 Apr 2026, 03:38 PM", "date_ts": "2026-04-12", "How soon are you looking to start your membership?": "Just exploring options", "Name": "Ranjith Kumar", "Preferred membership tenure": "10 years", "Phone": "+919731182359", "What type of membership are you interested in?": "Family", "Email": "hyrisegroup@gmail.com", "_property": "Signature", "_form_type": "Club Membership", "_sheet": "Signature - Club Membership"}, {"id": "986660413782448", "date": "12 Apr 2026, 10:30 PM", "date_ts": "2026-04-12", "What type of membership are you interested in?": "Just exploring", "Preferred membership tenure": "10 years", "How soon are you looking to start your membership?": "Within 3 months", "Name": "Arun MA", "Phone": "+919844627887", "Email": "arun.ma@gmail.com", "_property": "Woodrose", "_form_type": "Club Membership", "_sheet": "Woodrose - Club Membership"}, {"id": "946798048261133", "date": "12 Apr 2026, 11:31 AM", "date_ts": "2026-04-12", "Name": "Arpitha", "Phone": "+919986528793", "Email": "arpithaupadhyaya@gmail.com", "What type of membership are you interested in?": "Just exploring", "Preferred membership tenure": "Not sure yet", "How soon are you looking to start your membership?": "Immediately", "_property": "Regent", "_form_type": "Club Membership", "_sheet": "Regent - Club Membership"}, {"id": "1003012992287565", "date": "12 Apr 2026, 09:56 AM", "date_ts": "2026-04-12", "Name": "Kota Ashwin Reddy", "Phone": "+919008582006", "Email": "kota.ashwinreddy@gmail.com", "What type of membership are you interested in?": "Family", "Preferred membership tenure": "3 years", "How soon are you looking to start your membership?": "Within 1 month", "_property": "Regent", "_form_type": "Club Membership", "_sheet": "Regent - Club Membership"}, {"id": "932529626160907", "date": "12 Apr 2026, 09:52 AM", "date_ts": "2026-04-12", "Name": "Mohana", "Phone": "+917019676866", "Email": "pesalamohana@gmail.com", "What type of event are you planning?": "Wedding / Reception", "How many guests are you expecting?": "200+ guests", "When are you planning your event?": "Within 6 months", "What is your approximate event budget?": "1 - 3 lakhs", "_property": "Augusta", "_form_type": "Social Events", "_sheet": "Augusta - Social Events"}, {"id": "2370043800137916", "date": "12 Apr 2026, 08:07 AM", "date_ts": "2026-04-12", "What type of event are you planning?": "Engagement / Anniversary", "How many guests are you expecting?": "100 - 200 guests", "When are you planning your event?": "Within 1 month", "What is your approximate event budget?": "Under 1 lakh", "Name": "Chitta", "Phone": "+919663810039", "Email": "chitra.s21@gmail.com", "_property": "Augusta", "_form_type": "Social Events", "_sheet": "Augusta - Social Events"}, {"id": "954100830676774", "date": "11 Apr 2026, 03:54 PM", "date_ts": "2026-04-11", "How soon are you looking to start your membership?": "Just exploring options", "Name": "Hemanth Kumar", "Preferred membership tenure": "Not sure yet", "Phone": "+919980565740", "What type of membership are you interested in?": "Just exploring", "Email": "hemanth74@gmail.com", "_property": "Signature", "_form_type": "Club Membership", "_sheet": "Signature - Club Membership"}, {"id": "1341566807790340", "date": "11 Apr 2026, 03:09 PM", "date_ts": "2026-04-11", "Name": "Himanshu Khushdil", "Phone": "+919901278672", "Email": "himanshukhushdil@gmail.com", "What type of membership are you interested in?": "Corporate", "Preferred membership tenure": "5 years", "How soon are you looking to start your membership?": "Immediately", "_property": "Signature", "_form_type": "Club Membership", "_sheet": "Signature - Club Membership"}, {"id": "981240047764569", "date": "11 Apr 2026, 03:03 PM", "date_ts": "2026-04-11", "Which Day Out package are you interested in?": "Need help choosing", "How many people will be joining?": "50+ people", "When are you planning your visit?": "Just exploring options", "Name": "D Anil", "Phone": "+916301135894", "Email": "banil91107@gmail.com", "_property": "Signature", "_form_type": "Day Out", "_sheet": "Signature - Day Out"}, {"id": "2065730850710257", "date": "11 Apr 2026, 05:34 PM", "date_ts": "2026-04-11", "What type of membership are you interested in?": "Couple", "Preferred membership tenure": "5 years", "How soon are you looking to start your membership?": "Immediately", "Name": "Rahul Shukla", "Phone": "+918860558504", "Email": "shuklarahul2009@gmail.com", "_property": "Regent", "_form_type": "Club Membership", "_sheet": "Regent - Club Membership"}, {"id": "1263568625970073", "date": "11 Apr 2026, 02:21 PM", "date_ts": "2026-04-11", "Name": "Kiran Tennis Kiran Federer", "Phone": "+918123548480", "Email": "kirankiranronaldo11@gmail.com", "What type of membership are you interested in?": "Individual", "Preferred membership tenure": "10 years", "How soon are you looking to start your membership?": "Within 1 month", "_property": "Regent", "_form_type": "Club Membership", "_sheet": "Regent - Club Membership"}, {"id": "786882941139030", "date": "11 Apr 2026, 11:47 AM", "date_ts": "2026-04-11", "Name": "Shouvik Lahiri", "Phone": "+919038093000", "Email": "Svk@impact4brands.com", "What type of membership are you interested in?": "Couple", "Preferred membership tenure": "Not sure yet", "How soon are you looking to start your membership?": "Within 1 month", "_property": "Regent", "_form_type": "Club Membership", "_sheet": "Regent - Club Membership"}, {"id": "1452274489452468", "date": "11 Apr 2026, 10:49 PM", "date_ts": "2026-04-11", "Name": "Madhurya Basavaraj", "Phone": "+919535505566", "Email": "60madhuriya@gmail.com", "What type of event are you planning?": "Birthday celebration", "How many guests are you expecting?": "200+ guests", "When are you planning your event?": "Within 1 month", "What is your approximate event budget?": "Under 1 lakh", "_property": "Augusta", "_form_type": "Social Events", "_sheet": "Augusta - Social Events"}, {"id": "3224439371062135", "date": "11 Apr 2026, 09:42 AM", "date_ts": "2026-04-11", "What type of membership are you interested in?": "Individual", "Preferred membership tenure": "3 years", "How soon are you looking to start your membership?": "Within 1 month", "Name": "Aslam Ahamed", "Phone": "+919620933600", "Email": "funnyguy.aslam@gmail.com", "_property": "Galaxy", "_form_type": "Club Membership", "_sheet": "Galaxy - Club Membership"}, {"id": "1500196411768038", "date": "11 Apr 2026, 10:03 PM", "date_ts": "2026-04-11", "What type of event are you planning?": "Engagement / Anniversary", "How many guests are you expecting?": "100 - 200 guests", "When are you planning your event?": "Within 1 month", "What is your approximate event budget?": "Under 1 lakh", "Name": "Chitta", "Phone": "+919663810039", "Email": "chitra.s21@gmail.com", "_property": "Galaxy", "_form_type": "Social Events", "_sheet": "Galaxy - Social Events"}];
+const SCHEMAS     = {"Signature": ["Name", "Phone", "Email", "What type of membership are you interested in?", "Preferred membership tenure", "How soon are you looking to start your membership?", "Which Day Out package are you interested in?", "How many people will be joining?", "When are you planning your visit?"], "Woodrose": ["Name", "Phone", "Email", "What type of membership are you interested in?", "Preferred membership tenure", "How soon are you looking to start your membership?", "What type of event are you planning?", "How many guests are you expecting?", "When are you planning your event?", "What is your approximate event budget?"], "Regent": ["Name", "Phone", "Email", "What type of membership are you interested in?", "Preferred membership tenure", "How soon are you looking to start your membership?", "What type of event are you planning?", "How many guests are you expecting?", "When are you planning your event?", "What is your approximate event budget?"], "Augusta": ["Name", "Phone", "Email", "What type of membership are you interested in?", "Preferred membership tenure", "How soon are you looking to start your membership?", "What type of event are you planning?", "How many guests are you expecting?", "When are you planning your event?", "What is your approximate event budget?"], "Galaxy": ["Name", "Phone", "Email", "What type of membership are you interested in?", "Preferred membership tenure", "How soon are you looking to start your membership?", "What type of event are you planning?", "How many guests are you expecting?", "When are you planning your event?", "What is your approximate event budget?"]};
+const COLORS      = {"Signature": "#1a3c6e", "Woodrose": "#6e1a3c", "Regent": "#1a6e3c", "Augusta": "#6e4a1a", "Galaxy": "#3c1a6e"};
+const PROPERTIES  = ["Signature", "Woodrose", "Regent", "Augusta", "Galaxy"];
+
+const FIXED_COLS  = ['Name','Phone','Email'];
+const META_COLS   = ['_property','_form_type','_sheet','id','date','date_ts'];
+
+let currentTab    = 'all';
+let filteredLeads = [...ALL_LEADS];
+
+// ── Date filter ────────────────────────────────────────────────────────────────
+function getFiltered() {
+  const from = document.getElementById('date-from').value;
+  const to   = document.getElementById('date-to').value;
+  return ALL_LEADS.filter(l => {
+    const d = l.date_ts || '';
+    return (!from || d >= from) && (!to || d <= to);
   });
-})();
-</script>
-<div class="prop-section" id="prop-woodrose">
-  <div class="prop-header" style="background:#6e1a3c">
-    <div>
-      <div class="prop-name">Woodrose</div>
-      <div class="prop-sub">0 total leads</div>
-    </div>
-    <div class="prop-stats">
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Total</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">This week</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Today</div></div>
-    </div>
-  </div>
-
-  <div class="chart-wrap">
-    <canvas id="chart-woodrose" height="80"></canvas>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead><tr>
-        <th>Name</th><th>Phone</th><th>Email</th><th>Form</th><th>Submitted At</th>
-        
-      </tr></thead>
-      <tbody><tr><td colspan="10" style="text-align:center;color:#9ca3af">No leads yet</td></tr></tbody>
-    </table>
-  </div>
-</div>
-<script>
-(function(){
-  var ctx = document.getElementById('chart-woodrose').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ["18 Mar", "19 Mar", "20 Mar", "21 Mar", "22 Mar", "23 Mar", "24 Mar", "25 Mar", "26 Mar", "27 Mar", "28 Mar", "29 Mar", "30 Mar", "31 Mar", "01 Apr", "02 Apr", "03 Apr", "04 Apr", "05 Apr", "06 Apr", "07 Apr", "08 Apr", "09 Apr", "10 Apr", "11 Apr", "12 Apr", "13 Apr", "14 Apr", "15 Apr", "16 Apr"],
-      datasets: [{
-        label: 'Leads',
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: '#6e1a3ccc',
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 11 } } },
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-      }
-    }
-  });
-})();
-</script>
-<div class="prop-section" id="prop-regent">
-  <div class="prop-header" style="background:#1a6e3c">
-    <div>
-      <div class="prop-name">Regent</div>
-      <div class="prop-sub">0 total leads</div>
-    </div>
-    <div class="prop-stats">
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Total</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">This week</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Today</div></div>
-    </div>
-  </div>
-
-  <div class="chart-wrap">
-    <canvas id="chart-regent" height="80"></canvas>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead><tr>
-        <th>Name</th><th>Phone</th><th>Email</th><th>Form</th><th>Submitted At</th>
-        
-      </tr></thead>
-      <tbody><tr><td colspan="10" style="text-align:center;color:#9ca3af">No leads yet</td></tr></tbody>
-    </table>
-  </div>
-</div>
-<script>
-(function(){
-  var ctx = document.getElementById('chart-regent').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ["18 Mar", "19 Mar", "20 Mar", "21 Mar", "22 Mar", "23 Mar", "24 Mar", "25 Mar", "26 Mar", "27 Mar", "28 Mar", "29 Mar", "30 Mar", "31 Mar", "01 Apr", "02 Apr", "03 Apr", "04 Apr", "05 Apr", "06 Apr", "07 Apr", "08 Apr", "09 Apr", "10 Apr", "11 Apr", "12 Apr", "13 Apr", "14 Apr", "15 Apr", "16 Apr"],
-      datasets: [{
-        label: 'Leads',
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: '#1a6e3ccc',
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 11 } } },
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-      }
-    }
-  });
-})();
-</script>
-<div class="prop-section" id="prop-augusta">
-  <div class="prop-header" style="background:#6e4a1a">
-    <div>
-      <div class="prop-name">Augusta</div>
-      <div class="prop-sub">0 total leads</div>
-    </div>
-    <div class="prop-stats">
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Total</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">This week</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Today</div></div>
-    </div>
-  </div>
-
-  <div class="chart-wrap">
-    <canvas id="chart-augusta" height="80"></canvas>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead><tr>
-        <th>Name</th><th>Phone</th><th>Email</th><th>Form</th><th>Submitted At</th>
-        
-      </tr></thead>
-      <tbody><tr><td colspan="10" style="text-align:center;color:#9ca3af">No leads yet</td></tr></tbody>
-    </table>
-  </div>
-</div>
-<script>
-(function(){
-  var ctx = document.getElementById('chart-augusta').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ["18 Mar", "19 Mar", "20 Mar", "21 Mar", "22 Mar", "23 Mar", "24 Mar", "25 Mar", "26 Mar", "27 Mar", "28 Mar", "29 Mar", "30 Mar", "31 Mar", "01 Apr", "02 Apr", "03 Apr", "04 Apr", "05 Apr", "06 Apr", "07 Apr", "08 Apr", "09 Apr", "10 Apr", "11 Apr", "12 Apr", "13 Apr", "14 Apr", "15 Apr", "16 Apr"],
-      datasets: [{
-        label: 'Leads',
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: '#6e4a1acc',
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 11 } } },
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-      }
-    }
-  });
-})();
-</script>
-<div class="prop-section" id="prop-galaxy">
-  <div class="prop-header" style="background:#3c1a6e">
-    <div>
-      <div class="prop-name">Galaxy</div>
-      <div class="prop-sub">0 total leads</div>
-    </div>
-    <div class="prop-stats">
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Total</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">This week</div></div>
-      <div class="prop-stat"><div class="ps-val">0</div><div class="ps-lbl">Today</div></div>
-    </div>
-  </div>
-
-  <div class="chart-wrap">
-    <canvas id="chart-galaxy" height="80"></canvas>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead><tr>
-        <th>Name</th><th>Phone</th><th>Email</th><th>Form</th><th>Submitted At</th>
-        
-      </tr></thead>
-      <tbody><tr><td colspan="10" style="text-align:center;color:#9ca3af">No leads yet</td></tr></tbody>
-    </table>
-  </div>
-</div>
-<script>
-(function(){
-  var ctx = document.getElementById('chart-galaxy').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ["18 Mar", "19 Mar", "20 Mar", "21 Mar", "22 Mar", "23 Mar", "24 Mar", "25 Mar", "26 Mar", "27 Mar", "28 Mar", "29 Mar", "30 Mar", "31 Mar", "01 Apr", "02 Apr", "03 Apr", "04 Apr", "05 Apr", "06 Apr", "07 Apr", "08 Apr", "09 Apr", "10 Apr", "11 Apr", "12 Apr", "13 Apr", "14 Apr", "15 Apr", "16 Apr"],
-      datasets: [{
-        label: 'Leads',
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: '#3c1a6ecc',
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 11 } } },
-        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-      }
-    }
-  });
-})();
-</script>
-
-</div>
-
-<div class="footer">Brigade Hospitality x Gautami &nbsp;|&nbsp; Auto-updated every 15 minutes</div>
-
-<script>
-// Donut chart
-new Chart(document.getElementById('donut-chart'), {
-  type: 'doughnut',
-  data: {
-    labels: [],
-    datasets: [{
-      data: [],
-      backgroundColor: [],
-      borderWidth: 0,
-      hoverOffset: 6
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: { legend: { display: false } }
-  }
-});
-
-// Tab switching
-function showProp(id, el) {
-  document.querySelectorAll('.prop-section').forEach(s => s.classList.remove('visible'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('prop-' + id).classList.add('visible');
-  el.classList.add('active');
 }
+
+function applyFilter() {
+  filteredLeads = getFiltered();
+  document.getElementById('result-count').textContent = filteredLeads.length + ' leads';
+  renderPanels();
+}
+
+function resetDates() {
+  const dates = ALL_LEADS.map(l=>l.date_ts).filter(Boolean).sort();
+  document.getElementById('date-from').value = dates[0] || '';
+  document.getElementById('date-to').value   = dates[dates.length-1] || '';
+  applyFilter();
+}
+
+document.getElementById('date-from').addEventListener('change', applyFilter);
+document.getElementById('date-to').addEventListener('change', applyFilter);
+
+// ── Tab switching ──────────────────────────────────────────────────────────────
+function showTab(id, el) {
+  currentTab = id;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('visible'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('visible');
+}
+
+// ── Build table ────────────────────────────────────────────────────────────────
+function extraCols(leads) {
+  const skip = new Set([...META_COLS, ...FIXED_COLS]);
+  const cols = [];
+  leads.forEach(l => Object.keys(l).forEach(k => { if (!skip.has(k) && !cols.includes(k)) cols.push(k); }));
+  return cols;
+}
+
+function buildTable(leads, showProp) {
+  if (!leads.length) return '<div class="empty">No leads in this date range.</div>';
+
+  const extra = extraCols(leads);
+  const cols  = showProp
+    ? ['Name','Phone','Email','Property','Form','Submitted At',...extra]
+    : ['Name','Phone','Email','Form','Submitted At',...extra];
+
+  const header = cols.map(c=>`<th>${c}</th>`).join('');
+  const rows   = leads.map(l => {
+    const cells = cols.map(c => {
+      if (c === 'Property')     return `<td>${l._property||'—'}</td>`;
+      if (c === 'Form')         return `<td>${l._form_type||'—'}</td>`;
+      if (c === 'Submitted At') return `<td>${l.date||'—'}</td>`;
+      return `<td title="${(l[c]||'').toString().replace(/"/g,"'")}">${l[c]||'—'}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  return `<div class="table-wrap"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// ── Render panels ──────────────────────────────────────────────────────────────
+function renderPanels() {
+  const container = document.getElementById('panels');
+  let html = '';
+
+  // All panel
+  const today    = new Date().toISOString().slice(0,10);
+  const weekAgo  = new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+  const allTotal = filteredLeads.length;
+  const allWeek  = filteredLeads.filter(l=>(l.date_ts||'')>=weekAgo).length;
+  const allToday = filteredLeads.filter(l=>(l.date_ts||'')>=today).length;
+
+  html += `<div class="panel ${currentTab==='all'?'visible':''}" id="panel-all">
+    <div class="prop-header" style="background:#1a1a2e;border-radius:12px 12px 0 0">
+      <div><div class="prop-name">All Properties</div><div class="prop-sub">${allTotal} leads in range</div></div>
+      <div class="prop-stats">
+        <div><div class="ps-val">${allTotal}</div><div class="ps-lbl">Total</div></div>
+        <div><div class="ps-val">${allWeek}</div><div class="ps-lbl">This week</div></div>
+        <div><div class="ps-val">${allToday}</div><div class="ps-lbl">Today</div></div>
+      </div>
+    </div>
+    <div class="table-card">${buildTable(filteredLeads, true)}</div>
+  </div>`;
+
+  // Per-property panels
+  PROPERTIES.forEach(prop => {
+    const color  = COLORS[prop] || '#0f3460';
+    const leads  = filteredLeads.filter(l => l._property === prop);
+    const pWeek  = leads.filter(l=>(l.date_ts||'')>=weekAgo).length;
+    const pToday = leads.filter(l=>(l.date_ts||'')>=today).length;
+
+    html += `<div class="panel ${currentTab===prop.toLowerCase()?'visible':''}" id="panel-${prop.toLowerCase()}">
+      <div class="prop-header" style="background:${color};border-radius:12px 12px 0 0">
+        <div><div class="prop-name">${prop}</div><div class="prop-sub">${leads.length} leads in range</div></div>
+        <div class="prop-stats">
+          <div><div class="ps-val">${leads.length}</div><div class="ps-lbl">Total</div></div>
+          <div><div class="ps-val">${pWeek}</div><div class="ps-lbl">This week</div></div>
+          <div><div class="ps-val">${pToday}</div><div class="ps-lbl">Today</div></div>
+        </div>
+      </div>
+      <div class="table-card">${buildTable(leads, false)}</div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+  document.getElementById('result-count').textContent = filteredLeads.length + ' leads';
+}
+
+// ── Excel download ─────────────────────────────────────────────────────────────
+function downloadExcel() {
+  const wb   = XLSX.utils.book_new();
+  const skip = new Set(META_COLS.filter(c=>c!=='_property'&&c!=='_form_type'));
+
+  // Sheet per property + one "All" sheet
+  const groups = {'All Properties': filteredLeads};
+  PROPERTIES.forEach(p => { groups[p] = filteredLeads.filter(l=>l._property===p); });
+
+  Object.entries(groups).forEach(([name, leads]) => {
+    if (!leads.length) return;
+    const extra = extraCols(leads);
+    const cols  = ['Name','Phone','Email','Property','Form','Submitted At',...extra];
+
+    const rows = leads.map(l => {
+      const row = {};
+      cols.forEach(c => {
+        if (c==='Property')     row[c] = l._property||'';
+        else if (c==='Form')    row[c] = l._form_type||'';
+        else if (c==='Submitted At') row[c] = l.date||'';
+        else row[c] = l[c]||'';
+      });
+      return row;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows, {header: cols});
+
+    // Column widths
+    ws['!cols'] = cols.map(c => ({wch: Math.min(Math.max(c.length+2, 12), 40)}));
+
+    const sheetName = name.slice(0,31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  const from = document.getElementById('date-from').value || 'all';
+  const to   = document.getElementById('date-to').value   || 'time';
+  XLSX.writeFile(wb, `Brigade_Leads_${from}_to_${to}.xlsx`);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+applyFilter();
 </script>
 </body>
 </html>
