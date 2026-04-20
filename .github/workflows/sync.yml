@@ -2,7 +2,7 @@ name: Brigade Leads Sync
 
 on:
   schedule:
-    - cron: '0 4-15 * * *'   # every hour, 9:30 AM–9:30 PM IST (4–15 UTC)
+    - cron: '*/20 4-15 * * *'   # every 20 min, 9:30 AM–9:30 PM IST (4–15 UTC)
   workflow_dispatch:           # allow manual trigger from GitHub UI
 
 jobs:
