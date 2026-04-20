@@ -4,12 +4,14 @@ Fetches all leads from Meta API and generates a self-contained HTML dashboard.
 Features: date range filter, Excel export, all form question fields.
 """
 
-import requests, os, json
+import requests, os, json, re
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
-META_TOKEN = os.environ['META_SYSTEM_USER_TOKEN']
-IST        = timezone(timedelta(hours=5, minutes=30))
+META_TOKEN   = os.environ['META_SYSTEM_USER_TOKEN']
+IST          = timezone(timedelta(hours=5, minutes=30))
+HIST_FILE    = os.path.join(os.path.dirname(__file__), 'historical_leads.json')
+RAW_DIR      = os.path.join(os.path.dirname(__file__), 'raw_leads')
 
 FORMS = [
     {"property": "Signature",  "sheet": "Signature - Club Membership", "form_id": "1958383678398355", "type": "Club Membership"},
@@ -96,24 +98,87 @@ def fetch_all_leads(form_id):
     return leads, q_order
 
 
-def fetch_all_data():
-    all_leads   = []
-    form_schemas = {}   # sheet -> [col names in order]
+def load_historical():
+    """Load older leads from historical_leads.json (leads no longer in Meta API)."""
+    if os.path.exists(HIST_FILE):
+        with open(HIST_FILE) as f:
+            return json.load(f)
+    return []
 
+def load_from_raw_csvs():
+    """Load leads from local raw CSVs — used when running locally to capture older leads."""
+    if not os.path.exists(RAW_DIR):
+        return []
+    import csv
+    leads = []
+    sheet_to_form = {f["sheet"]: f for f in FORMS}
+    for fname in os.listdir(RAW_DIR):
+        if not fname.endswith('.csv'):
+            continue
+        sheet = fname[:-4]
+        form  = sheet_to_form.get(sheet)
+        if not form:
+            continue
+        with open(os.path.join(RAW_DIR, fname), newline='', encoding='utf-8') as f:
+            for row in csv.DictReader(f):
+                lead = dict(row)
+                lead["id"]         = lead.pop("_id", lead.get("id", ""))
+                lead["date"]       = lead.pop("Submitted At", "")
+                lead["date_ts"]    = ""
+                lead["_property"]  = form["property"]
+                lead["_form_type"] = form["type"]
+                lead["_sheet"]     = sheet
+                # Parse date_ts from date string e.g. "8 Apr 2026, 6:28 PM"
+                try:
+                    dt = datetime.strptime(lead["date"], "%d %b %Y, %I:%M %p")
+                    lead["date_ts"] = dt.strftime("%Y-%m-%d")
+                except Exception:
+                    pass
+                leads.append(lead)
+    return leads
+
+def fetch_all_data():
+    all_leads    = []
+    form_schemas = {}
+    seen_ids     = set()
+
+    # 1. Load historical leads (committed to repo)
+    hist = load_historical()
+    for l in hist:
+        if l.get("id") and l["id"] not in seen_ids:
+            seen_ids.add(l["id"])
+            all_leads.append(l)
+
+    # 2. Fetch fresh leads from Meta API
     for form in FORMS:
         print(f"  Fetching {form['sheet']}...", flush=True)
         leads, q_order = fetch_all_leads(form["form_id"])
         print(f"    → {len(leads)} leads", flush=True)
-
         form_schemas[form["sheet"]] = q_order
-
         for lead in leads:
             lead["_property"]  = form["property"]
             lead["_form_type"] = form["type"]
             lead["_sheet"]     = form["sheet"]
-        all_leads.extend(leads)
+            if lead.get("id") and lead["id"] not in seen_ids:
+                seen_ids.add(lead["id"])
+                all_leads.append(lead)
 
     return all_leads, form_schemas
+
+def update_historical_from_csvs():
+    """Run locally to pull older leads from raw CSVs into historical_leads.json."""
+    existing = load_historical()
+    seen_ids = {l.get("id") for l in existing if l.get("id")}
+    csv_leads = load_from_raw_csvs()
+    new_hist  = [l for l in csv_leads if l.get("id") and l["id"] not in seen_ids]
+    if new_hist:
+        all_hist = existing + new_hist
+        with open(HIST_FILE, 'w') as f:
+            json.dump(all_hist, f, ensure_ascii=False, indent=2)
+        print(f"Added {len(new_hist)} historical leads to {HIST_FILE}", flush=True)
+    else:
+        print("No new historical leads to add.", flush=True)
+    return existing + new_hist
 
 
 def generate(all_leads, form_schemas):
@@ -453,6 +518,11 @@ applyFilter();
 
 
 if __name__ == '__main__':
+    # Pull older leads from local raw CSVs into historical_leads.json
+    if os.path.exists(RAW_DIR):
+        print("Updating historical leads from local CSVs...", flush=True)
+        update_historical_from_csvs()
+
     print("Fetching all leads for dashboard...", flush=True)
     all_leads, form_schemas = fetch_all_data()
     total = len(all_leads)
