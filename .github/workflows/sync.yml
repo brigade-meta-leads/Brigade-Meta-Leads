@@ -24,14 +24,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Sync leads to OneDrive
-        env:
-          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
-          MS_REFRESH_TOKEN: ${{ secrets.MS_REFRESH_TOKEN }}
-          MS_CLIENT_ID: ${{ secrets.MS_CLIENT_ID }}
-          MS_FILE_ID: ${{ secrets.MS_FILE_ID }}
-        run: python -u sync.py
-
       - name: Generate dashboard
         env:
           META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
@@ -41,6 +33,6 @@ jobs:
         run: |
           git config user.name  "brigade-sync-bot"
           git config user.email "sync-bot@brigade"
-          git add .pushed_ids.json dashboard.html
+          git add dashboard.html
           git diff --staged --quiet || git commit -m "sync: update leads [skip ci]"
           git push
