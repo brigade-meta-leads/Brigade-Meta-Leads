@@ -196,7 +196,7 @@ def generate(all_leads, form_schemas):
     # Date bounds for the date picker defaults
     dates     = [l["date_ts"] for l in all_leads if l.get("date_ts")]
     min_date  = min(dates) if dates else ""
-    max_date  = max(dates) if dates else ""
+    max_date  = datetime.now(IST).strftime("%Y-%m-%d")  # always allow selecting today
 
     # Build per-property schemas (union of all question columns)
     prop_schemas = defaultdict(list)
