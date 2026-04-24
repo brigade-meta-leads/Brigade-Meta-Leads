@@ -290,6 +290,11 @@ tr:last-child td{{border-bottom:none}}
 tr:hover td{{background:#f8f9ff}}
 .empty{{padding:36px;text-align:center;color:#9ca3af;font-size:.88rem}}
 
+.remark-td{{white-space:normal!important;min-width:200px;max-width:320px}}
+.remark-input{{width:100%;padding:5px 8px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:.8rem;font-family:inherit;color:#1a1a2e;background:#fffdf0;resize:none;outline:none;transition:border-color .15s}}
+.remark-input:focus{{border-color:#0f3460;background:#fff}}
+.remark-input::placeholder{{color:#c4b8a0}}
+
 .footer{{text-align:center;padding:22px;color:#9ca3af;font-size:.7rem}}
 
 @media(max-width:700px){{
@@ -353,6 +358,15 @@ const PROPERTIES  = {props_json};
 const FIXED_COLS  = ['Name','Phone','Email'];
 const META_COLS   = ['_property','_form_type','_sheet','id','date','date_ts'];
 
+// ── Remarks (localStorage, keyed by lead ID) ───────────────────────────────
+function getRemark(id)       {{ return localStorage.getItem('remark_' + id) || ''; }}
+function saveRemark(id, val) {{ val ? localStorage.setItem('remark_' + id, val) : localStorage.removeItem('remark_' + id); }}
+function loadRemarks() {{
+  document.querySelectorAll('.remark-input').forEach(el => {{
+    el.value = getRemark(el.dataset.id);
+  }});
+}}
+
 let currentTab    = 'all';
 let filteredLeads = [...ALL_LEADS];
 
@@ -408,7 +422,8 @@ function buildTable(leads, showProp) {{
     ? ['Name','Phone','Email','Property','Form','Submitted At',...extra]
     : ['Name','Phone','Email','Form','Submitted At',...extra];
 
-  const header = cols.map(c=>`<th>${{c}}</th>`).join('');
+  const allCols = [...cols, 'Remarks'];
+  const header = allCols.map(c=>`<th>${{c}}</th>`).join('');
   const rows   = leads.map(l => {{
     const cells = cols.map(c => {{
       if (c === 'Property')     return `<td>${{l._property||'—'}}</td>`;
@@ -416,7 +431,8 @@ function buildTable(leads, showProp) {{
       if (c === 'Submitted At') return `<td>${{l.date||'—'}}</td>`;
       return `<td title="${{(l[c]||'').toString().replace(/"/g,"'")}}">${{l[c]||'—'}}</td>`;
     }}).join('');
-    return `<tr>${{cells}}</tr>`;
+    const remarkCell = `<td class="remark-td"><textarea class="remark-input" rows="2" data-id="${{l.id}}" placeholder="Add remarks…" oninput="saveRemark('${{l.id}}',this.value)"></textarea></td>`;
+    return `<tr>${{cells}}${{remarkCell}}</tr>`;
   }}).join('');
 
   return `<div class="table-wrap"><table><thead><tr>${{header}}</tr></thead><tbody>${{rows}}</tbody></table></div>`;
@@ -468,6 +484,7 @@ function renderPanels() {{
 
   container.innerHTML = html;
   document.getElementById('result-count').textContent = filteredLeads.length + ' leads';
+  loadRemarks();
 }}
 
 // ── Excel download ─────────────────────────────────────────────────────────────
@@ -482,7 +499,7 @@ function downloadExcel() {{
   Object.entries(groups).forEach(([name, leads]) => {{
     if (!leads.length) return;
     const extra = extraCols(leads);
-    const cols  = ['Name','Phone','Email','Property','Form','Submitted At',...extra];
+    const cols  = ['Name','Phone','Email','Property','Form','Submitted At',...extra,'Remarks'];
 
     const rows = leads.map(l => {{
       const row = {{}};
@@ -490,6 +507,7 @@ function downloadExcel() {{
         if (c==='Property')     row[c] = l._property||'';
         else if (c==='Form')    row[c] = l._form_type||'';
         else if (c==='Submitted At') row[c] = l.date||'';
+        else if (c==='Remarks') row[c] = getRemark(l.id);
         else row[c] = l[c]||'';
       }});
       return row;
