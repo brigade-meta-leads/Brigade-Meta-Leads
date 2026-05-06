@@ -62,6 +62,10 @@ tr:hover td{background:#f8f9ff}
 .remark-input{width:100%;padding:5px 8px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:.8rem;font-family:inherit;color:#1a1a2e;background:#fffdf0;resize:none;outline:none;transition:border-color .15s}
 .remark-input:focus{border-color:#0f3460;background:#fff}
 .remark-input::placeholder{color:#c4b8a0}
+.rsave{font-size:.72rem;font-weight:600;min-width:70px}
+.rsave.saving{color:#9ca3af}
+.rsave.saved{color:#16a34a}
+.rsave.error{color:#dc2626}
 
 .footer{text-align:center;padding:22px;color:#9ca3af;font-size:.7rem}
 
@@ -79,7 +83,7 @@ tr:hover td{background:#f8f9ff}
     <h1>Brigade Hospitality</h1>
     <p>Meta Ads — Leads Dashboard</p>
   </div>
-  <div class="updated">Updated 06 May 2026, 04:53 PM IST</div>
+  <div class="updated">Updated 06 May 2026, 05:05 PM IST</div>
 </div>
 
 <div class="container">
@@ -102,6 +106,7 @@ tr:hover td{background:#f8f9ff}
     <div class="toolbar-sep"></div>
     <span class="result-count" id="result-count"></span>
     <button class="btn btn-download" onclick="downloadExcel()">⬇ Download Excel</button>
+    <span id="remarks-status" class="rsave"></span>
   </div>
 
   <!-- Tabs -->
@@ -126,13 +131,39 @@ const PROPERTIES  = ["Signature", "Woodrose", "Regent", "Augusta", "Galaxy"];
 const FIXED_COLS  = ['Name','Phone','Email'];
 const META_COLS   = ['_property','_form_type','_sheet','id','date','date_ts'];
 
-// ── Remarks (localStorage, keyed by lead ID) ───────────────────────────────
-function getRemark(id)       { return localStorage.getItem('remark_' + id) || ''; }
-function saveRemark(id, val) { val ? localStorage.setItem('remark_' + id, val) : localStorage.removeItem('remark_' + id); }
-function loadRemarks() {
+// ── Remarks (Google Sheets via Apps Script) ────────────────────────────────
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwy64IPgJo9L4yzaXZLBX6xEBY7byOGKtkfW3pdG3NLYSmpHXeTtLP0TlXRxgQDYnmD/exec';
+let REMARKS = {};
+let _saveTimer = null;
+
+async function loadRemarks() {
+  try {
+    const r = await fetch(GAS_URL + '?action=read');
+    REMARKS = r.ok ? await r.json() : {};
+  } catch(e) { REMARKS = {}; }
   document.querySelectorAll('.remark-input').forEach(el => {
-    el.value = getRemark(el.dataset.id);
+    el.value = REMARKS[el.dataset.id] || '';
   });
+}
+
+function saveRemark(id, val) {
+  if (val) REMARKS[id] = val; else delete REMARKS[id];
+  clearTimeout(_saveTimer);
+  _setStatus('saving');
+  _saveTimer = setTimeout(async () => {
+    try {
+      const url = GAS_URL + '?action=write&id=' + encodeURIComponent(id) + '&remark=' + encodeURIComponent(val || '');
+      await fetch(url);
+      _setStatus('saved');
+    } catch(e) { _setStatus('error'); }
+  }, 800);
+}
+
+function _setStatus(s) {
+  const el = document.getElementById('remarks-status');
+  el.className = 'rsave ' + s;
+  el.textContent = s==='saving' ? 'Saving…' : s==='saved' ? 'Saved ✓' : 'Save failed ✗';
+  if (s==='saved') setTimeout(()=>{ el.textContent=''; el.className='rsave'; }, 2000);
 }
 
 let currentTab    = 'all';
